@@ -3,7 +3,7 @@ import matplotlib
 from prm import PRM
 from visualization import visualize_graph
 from obstacles import create_obstacles
-from graph import Graph
+from graph import Graph, nodes
 
 
 def main():
@@ -11,13 +11,14 @@ def main():
     # Initialize the graph and obstacles
     graph = Graph()
     obstacles = create_obstacles()
+    start = nodes.get("start")
+    goal = nodes.get("B")
 
     # Initialize PRM with the graph and obstacles
-    # prm = PRM(graph, obstacles)
+    prm = PRM(graph, obstacles, start, goal)
 
     # Generate random nodes and connect them
-    # prm.generate_random_nodes()
-    # prm.connect_nodes()
+    prm.run()
 
     # Visualize the final graph
     visualize_graph(graph, obstacles)

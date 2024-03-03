@@ -1,11 +1,20 @@
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point, Polygon
+from matplotlib.patches import Polygon as MplPolygon
+from matplotlib.patches import Circle
+
+
+def add_circle(ax, point, radius, color='r'):
+    circle = Circle((point.x, point.y), radius, color=color, fill=True)
+    ax.add_patch(circle)
 
 
 def add_polygon(ax, polygon, color='r'):
     x, y = polygon.exterior.xy
-    ax.add_patch(Polygon(list(zip(x, y)), closed=True, color=color))
+    mpl_polygon = MplPolygon(list(zip(x, y)), closed=True, color=color)
+
+    # Add the patch to the axes
+    ax.add_patch(mpl_polygon)
 
 
 def add_linestring(ax, linestring, color='r'):
@@ -13,11 +22,17 @@ def add_linestring(ax, linestring, color='r'):
     ax.plot(x, y, color=color)
 
 
-def visualize_graph(graph, obstacles):
-    fig, ax = plt.subplots()
+def visualize_graph(graph, obstacles, multiplier=2):
+    current_size = plt.rcParams["figure.figsize"]
+    new_size = (current_size[0] * multiplier, current_size[1] * multiplier)
+    fig, ax = plt.subplots(figsize=new_size)
+    ax.set_aspect('equal')
     # Draw nodes
     for node, coords in graph.nodes.items():
-        ax.plot(coords[0], coords[1], 'go')  # 'go' for green dots
+        if node != 'Start':
+            ax.plot(coords[0], coords[1], '2')
+        else:
+            ax.plot(coords[0], coords[1], 'bo')
 
     # Draw edges
     for edge in graph.edges:
@@ -27,7 +42,9 @@ def visualize_graph(graph, obstacles):
 
     # Draw obstacles
     for obstacle in obstacles:
-        if isinstance(obstacle, Polygon):
+        if isinstance(obstacle, Circle):
+            add_circle(ax, Point(obstacle.center), obstacle.radius)
+        elif isinstance(obstacle, Polygon):
             add_polygon(ax, obstacle)
         elif isinstance(obstacle, LineString):
             add_linestring(ax, obstacle)

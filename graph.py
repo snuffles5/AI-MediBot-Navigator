@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 nodes = {
     'A': (60, 416),
     'B': (138, 564),
@@ -13,8 +15,11 @@ nodes = {
     'L': (534, 27),
     'M': (420, 27),
     'N': (75, 45),
-    'O': (312, 338)
+    'O': (312, 338),
+    'start': (202, 0),
 }
+
+MapCircle = namedtuple('MapCircle', ['center', 'radius'])
 
 
 class Graph:
