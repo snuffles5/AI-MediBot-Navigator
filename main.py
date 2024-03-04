@@ -3,26 +3,24 @@ import matplotlib
 from prm import PRM
 from visualization import visualize_graph
 from obstacles import create_obstacles
-from graph import Graph, nodes
+from graph import Graph, graph_rooms_nodes, graph_general_nodes
 
 
 def main():
     matplotlib.use('TkAgg')  # Replace 'TkAgg' with a backend appropriate for your system
     # Initialize the graph and obstacles
-    graph = Graph()
+    graph = Graph(nodes=graph_rooms_nodes)
     obstacles = create_obstacles()
-    start = nodes.get("start")
-    goal = nodes.get("B")
+    start = graph_general_nodes.get("start")
+    goal = graph_rooms_nodes.get("B")
 
     # Initialize PRM with the graph and obstacles
     prm = PRM(graph, obstacles, start, goal)
 
     # Generate random nodes and connect them
-    prm.run()
+    final_path = prm.run()
 
-    # Visualize the final graph
-    visualize_graph(graph, obstacles)
-    # visualize_obstacles(obstacles)
+    visualize_graph(graph, obstacles, final_path)
 
 
 if __name__ == "__main__":

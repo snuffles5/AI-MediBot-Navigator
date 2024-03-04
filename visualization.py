@@ -1,20 +1,8 @@
 import matplotlib.pyplot as plt
-from shapely.geometry import LineString, Point, Polygon
-from matplotlib.patches import Polygon as MplPolygon
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle as MplCircle, Polygon as MplPolygon, Circle
+from shapely.geometry import Point, LineString, Polygon
 
-
-def add_circle(ax, point, radius, color='r'):
-    circle = Circle((point.x, point.y), radius, color=color, fill=True)
-    ax.add_patch(circle)
-
-
-def add_polygon(ax, polygon, color='r'):
-    x, y = polygon.exterior.xy
-    mpl_polygon = MplPolygon(list(zip(x, y)), closed=True, color=color)
-
-    # Add the patch to the axes
-    ax.add_patch(mpl_polygon)
+from graph import MapCircle
 
 
 def add_linestring(ax, linestring, color='r'):
@@ -22,31 +10,62 @@ def add_linestring(ax, linestring, color='r'):
     ax.plot(x, y, color=color)
 
 
-def visualize_graph(graph, obstacles, multiplier=2):
-    current_size = plt.rcParams["figure.figsize"]
-    new_size = (current_size[0] * multiplier, current_size[1] * multiplier)
-    fig, ax = plt.subplots(figsize=new_size)
+def visualize_graph(graph, obstacles, final_path):
+    fig, ax = plt.subplots(figsize=(10, 10))  # Adjust figure size as needed
     ax.set_aspect('equal')
+
     # Draw nodes
-    for node, coords in graph.nodes.items():
-        if node != 'Start':
-            ax.plot(coords[0], coords[1], '2')
+    for node_id, coords in graph.nodes.items():
+        if node_id.split("_")[0] not in ["random", "start", "goal"]:
+            ax.plot(coords[0], coords[1], 'o', markersize=5, label=node_id)  # Nodes as dots
         else:
-            ax.plot(coords[0], coords[1], 'bo')
+            ax.plot(coords[0], coords[1], 'o', markersize=3, color='b')  # Nodes as dots
 
     # Draw edges
-    for edge in graph.edges:
-        node1, node2, _ = edge
-        coords1, coords2 = graph.nodes[node1], graph.nodes[node2]
-        ax.plot([coords1[0], coords2[0]], [coords1[1], coords2[1]], 'k-')  # 'k-' for black lines
+    # for from_node, edges in graph.edges.items():
+    #     from_coords = graph.nodes[from_node]
+    #     for to_node, cost in edges:
+    #         to_coords = graph.nodes[to_node]
+    #         ax.plot([from_coords[0], to_coords[0]], [from_coords[1], to_coords[1]], 'k-', linewidth=0.2)  # Edges as lines
+    # Draw all edges in the graph (for demonstration purposes)
+    for from_node, edges in graph.edges.items():
+        from_coords = graph.nodes[from_node]
+        for to_node, _ in edges:
+            to_coords = graph.nodes[to_node]
+            ax.plot([from_coords[0], to_coords[0]], [from_coords[1], to_coords[1]], 'k-', linewidth=0.5, alpha=0.5)
 
-    # Draw obstacles
+    # Highlight the path from start to goal if provided
+    if final_path:
+        for i in range(len(final_path) - 1):
+            start_coords = graph.nodes[final_path[i]]
+            end_coords = graph.nodes[final_path[i+1]]
+            ax.plot([start_coords[0], end_coords[0]], [start_coords[1], end_coords[1]], 'b-', linewidth=2)
+
+    # Draw start and goal nodes distinctly
+    if graph.start:
+        start_coords = graph.nodes[graph.start]
+        ax.plot(start_coords[0], start_coords[1], 'go')  # Green for start
+
+    if graph.goal:
+        goal_coords = graph.nodes[graph.goal]
+        ax.plot(goal_coords[0], goal_coords[1], 'ro')  # Red for goal
+
+    plt.show()
+
+
+    # Draw obstacles (assuming obstacles are shapely geometries for simplicity)
     for obstacle in obstacles:
-        if isinstance(obstacle, Circle):
-            add_circle(ax, Point(obstacle.center), obstacle.radius)
+        if isinstance(obstacle, LineString):
+            x, y = obstacle.xy
+            ax.plot(x, y, color='r')
         elif isinstance(obstacle, Polygon):
-            add_polygon(ax, obstacle)
-        elif isinstance(obstacle, LineString):
-            add_linestring(ax, obstacle)
+            x, y = obstacle.exterior.xy
+            ax.add_patch(MplPolygon(list(zip(x, y)), closed=True, color='r', fill=False))
+        elif isinstance(obstacle, MapCircle):  # Adjusted for custom Circle objects
+            # Draw Circle using matplotlib.patches.Circle
+            center = (obstacle.center[0], obstacle.center[1])  # Adjust if necessary
+            circle = MplCircle(center, obstacle.radius, edgecolor='r', facecolor='none')
+            ax.add_patch(circle)
 
+    plt.legend()
     plt.show()
