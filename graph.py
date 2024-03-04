@@ -6,6 +6,7 @@ MapCircle = namedtuple('MapCircle', ['center', 'radius'])
 MapPoint = namedtuple('MapPoint', ['x', 'y'])
 GOAL_POINT = "B"
 
+
 class GraphPoint:
     def __init__(self, x: float = 0.0, y: float = 0.0, point_id: str = None, point_type: str = None):
         self.x = x
@@ -27,6 +28,7 @@ class GraphPoint:
     def __repr__(self):
         return f"<'{self.id}' point {self.x, self.y}>"
 
+
 graph_rooms_nodes = {
     'A': GraphPoint(60, 416, point_id='A'),
     'B': GraphPoint(138, 564, point_id='B'),
@@ -45,11 +47,11 @@ graph_rooms_nodes = {
     'O': GraphPoint(312, 338, point_id='O'),
 }
 
-
 graph_general_nodes = {
     'start': GraphPoint(202, 0, point_id='start'),
     'goal': GraphPoint(graph_rooms_nodes.get(GOAL_POINT).x, graph_rooms_nodes.get(GOAL_POINT).y, point_id='goal'),
 }
+
 
 class Graph:
     def __init__(self, nodes: dict[GraphPoint]):
@@ -58,7 +60,7 @@ class Graph:
         self.edges = {}
 
     def get_room_nodes(self):
-        return [v for k,v in self.nodes.items() if len(v.id) == 1]
+        return [v for k, v in self.nodes.items() if len(v.id) == 1]
 
     def add_edge(self, from_node, to_node, cost):
         if from_node and to_node:
@@ -81,7 +83,6 @@ class Graph:
                     return cost
         logger.error(f"No edge found from {from_node} to {to_node}")
         return float('inf')
-
 
     def add_node(self, point: GraphPoint):
         node_id = point.id

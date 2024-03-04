@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle as MplCircle, Polygon as MplPolygon, Circle
-from shapely.geometry import Point, LineString, Polygon
+from matplotlib.patches import Circle as MplCircle, Polygon as MplPolygon
+from shapely.geometry import LineString, Polygon
 
 from graph import MapCircle, GraphPoint
 from log_model import logger
@@ -15,8 +15,6 @@ def visualize_graph(graph, obstacles, shortest_path, filename='graph_visualizati
     logger.info("Visualizing graph...")
     fig, ax = plt.subplots(figsize=(10, 10))  # Adjust figure size as needed
     ax.set_aspect('equal')
-
-
 
     # Draw obstacles (assuming obstacles are shapely geometries for simplicity)
     for obstacle in obstacles:
@@ -64,7 +62,5 @@ def visualize_graph(graph, obstacles, shortest_path, filename='graph_visualizati
     if goal_node:
         ax.plot(goal_node.x, goal_node.y, 'ro')  # Red for goal
 
-    # plt.legend()
-    # plt.show()
     plt.savefig(filename, format='pdf')
     plt.close(fig)  # Close the figure

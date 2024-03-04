@@ -1,7 +1,4 @@
-import logging
-
 import matplotlib
-
 from prm import PRM
 from visualization import visualize_graph
 from obstacles import create_obstacles
