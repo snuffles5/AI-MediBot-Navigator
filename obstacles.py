@@ -117,7 +117,7 @@ def create_obstacles():
         LineString([(277, 173), (282, 173)]),
         LineString([(282, 173), (282, 101)]),
         LineString([(282, 101), (277, 101)]),
-        LineString([(277, 101), (242, 101)]),
+        # LineString([(277, 101), (242, 101)]),
 
         # ...
         LineString([(225, 0), (225, 62)]),

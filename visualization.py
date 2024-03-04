@@ -43,7 +43,7 @@ def visualize_graph(graph, obstacles, shortest_path, filename='graph_visualizati
         for i in range(len(shortest_path) - 1):
             start_coords = graph.nodes[shortest_path[i].id]
             end_coords = graph.nodes[shortest_path[i + 1].id]
-            ax.plot([start_coords.x, end_coords.x], [start_coords.y, end_coords.y], 'b-', linewidth=5)
+            ax.plot([start_coords.x, end_coords.x], [start_coords.y, end_coords.y], 'b-', linewidth=2)
 
     # Draw nodes
     room_nodes_ids = [n.id for n in graph.room_nodes]

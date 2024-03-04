@@ -11,7 +11,8 @@ import heapq
 
 from log_model import logger
 
-K_RADIUS = 20
+K_RADIUS = 100
+
 
 def euclidean_heuristic(a, b):
     """Calculate the Euclidean distance between two points."""
@@ -58,6 +59,7 @@ class PRM:
         self.y_bounds = (0, 600)
         self.kd_tree = None
         self.node_list = [start]  # Include start in node list
+        self.node_list.extend([point for node_id, point in graph.nodes.items()])
         self.shortest_path = []
 
     def is_point_within_circle(self, point, circle):
@@ -118,16 +120,17 @@ class PRM:
         # Convert node points to a format compatible with KDTree and subsequent logic
         node_points = [(node.x, node.y) for node in self.node_list]
         self.kd_tree = KDTree(node_points)
-        for i, node_coords in enumerate(node_points[:-1]):  # Adjust for direct connections
-            distances, indices = self.kd_tree.query(node_coords, k=K_RADIUS)
-            for dist, index in zip(distances[1:], indices[1:]):  # Skip self
-                if self.is_clear_path(Point(node_coords), Point(node_points[index])):
-                    from_node_id = self.get_node_id_from_coords(node_coords)
-                    to_node_id = self.get_node_id_from_coords(node_points[index])
-                    self.graph.add_edge(from_node_id, to_node_id, dist)
-                    logger.debug(f"from_node_id: {from_node_id}, to_node_id: {to_node_id}, dist: {dist}")
-                    if i % 10 == 0:
-                        logger.debug(f"Connected {i} nodes.")
+        for i, node_coords in enumerate(node_points):
+            # Use query_ball_point for a radius search
+            indices = self.kd_tree.query_ball_point(node_coords, r=K_RADIUS)
+            for index in indices:
+                if index != i:  # Avoid connecting the node to itself
+                    from_node = self.node_list[i]
+                    to_node = self.node_list[index]
+                    if self.is_clear_path(Point(from_node.x, from_node.y), Point(to_node.x, to_node.y)):
+                        # Connect the nodes in the graph
+                        self.graph.add_edge(from_node.id, to_node.id, euclidean_heuristic(from_node, to_node))
+                        logger.debug(f"Connected {from_node.id} to {to_node.id}")
 
     def get_node_id_from_coords(self, coords):
         """Helper method to find node ID based on coordinates."""
@@ -140,8 +143,8 @@ class PRM:
 
     def find_path(self):
         logger.info("Finding shortest path...")
-        start_node = self.get_closest_node(self.start)
-        goal_node = self.get_closest_node(self.goal)
+        start_node = self.start.id
+        goal_node = self.goal.id
         if start_node == goal_node:
             # Handle the case where the start node and goal node are the same
             return [self.graph.nodes[start_node]]
