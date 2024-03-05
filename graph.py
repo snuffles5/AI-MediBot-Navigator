@@ -69,7 +69,6 @@ class Graph:
             else:
                 self.edges[from_node] = [(to_node, cost)]
         else:
-            # logger.trace(f"not from or to node {from_node=} {to_node=}")
             pass
 
     def neighbors(self, node_id):
@@ -88,4 +87,4 @@ class Graph:
         node_id = point.id
         self.nodes[node_id] = point
         if node_id not in self.edges:
-            self.edges[node_id] = []  # Initialize with an empty list of edges
+            self.edges[node_id] = []

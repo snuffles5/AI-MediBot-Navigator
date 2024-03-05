@@ -38,7 +38,6 @@ def create_obstacles():
         # C
         LineString([(157, 388), (157, 490)]),
         LineString([(157, 490), (265, 490)]),
-        # LineString([(106, 234), (265, 490)]),
         LineString([(265, 490), (265, 388)]),
         LineString([(265, 388), (226, 388)]),
         LineString([(204, 388), (157, 388)]),
@@ -117,7 +116,6 @@ def create_obstacles():
         LineString([(277, 173), (282, 173)]),
         LineString([(282, 173), (282, 101)]),
         LineString([(282, 101), (277, 101)]),
-        # LineString([(277, 101), (242, 101)]),
 
         # ...
         LineString([(225, 0), (225, 62)]),

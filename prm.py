@@ -55,7 +55,7 @@ def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance):
                 came_from[next_node] = current
                 logger.debug(f"Updating node {next_node} with new cost and priority.")
 
-    logger.info(f"Final came_from: {came_from}")
+    logger.debug(f"Final came_from: {came_from}")
     return came_from, cost_so_far
 
 
@@ -67,25 +67,18 @@ def dijkstra_search(graph, start, goal):
 
     while frontier:
         current_priority, current = heapq.heappop(frontier)
-        # Print statements replaced by comments for clarity
-        # logger.debug(f"Current node: {current}, Priority: {current_priority}")
-
         if current == goal:
-            # logger.debug("Goal reached!")
             break
 
         for next_node in graph.neighbors(current):
             new_cost = cost_so_far[current] + graph.cost(current, next_node)
-            # logger.debug(f"Considering: {next_node}, New cost: {new_cost}")
 
             if new_cost < cost_so_far.get(next_node, float('inf')):
                 cost_so_far[next_node] = new_cost
                 priority = new_cost  # Priority is just the new cost, no heuristic
                 heapq.heappush(frontier, (priority, next_node))
                 came_from[next_node] = current
-                # logger.debug(f"Updating node {next_node} with new cost and priority.")
 
-    # logger.info(f"Final came_from: {came_from}")
     return came_from, cost_so_far
 
 
@@ -99,7 +92,7 @@ class PRM:
         self.start: GraphPoint = start
         self.goal: GraphPoint = goal
         self.num_random_nodes = num_random_nodes
-        self.x_bounds = (0, 600)  # Set to your area's bounds
+        self.x_bounds = (0, 600)
         self.y_bounds = (0, 600)
         self.kd_tree = None
         self.initialize_nodes_list()
@@ -113,7 +106,7 @@ class PRM:
         circle_center = Point(circle.center)
         return point.distance(circle_center) <= circle.radius
 
-    def does_line_intersect_circle(self, line, circle: MapCircle):
+    def does_line_intersect_circle(self, line, circle):
         circle_center = Point(circle.center)
         distance = line.distance(circle_center)
         return distance <= circle.radius
@@ -124,7 +117,7 @@ class PRM:
             if isinstance(obstacle, (LineString, Polygon)):
                 if obstacle.contains(point_shapely):
                     return True
-            elif isinstance(obstacle, Circle):  # Assuming Circle is defined
+            elif isinstance(obstacle, Circle):
                 if self.is_point_within_circle(point, obstacle):
                     return True
         return False
@@ -174,18 +167,16 @@ class PRM:
                     from_node = self.node_list[i]
                     to_node = self.node_list[index]
                     if self.is_clear_path(Point(from_node.x, from_node.y), Point(to_node.x, to_node.y)):
-                        # Connect the nodes in the graph
                         self.graph.add_edge(from_node.id, to_node.id, type_of_distance(from_node, to_node))
                         logger.debug(f"Connected {from_node.id} to {to_node.id}")
 
     def get_node_id_from_coords(self, coords):
         """Helper method to find node ID based on coordinates."""
-        # This method assumes each set of coordinates is unique to each node
         for node_id, point in self.graph.nodes.items():
             node_coords = (point.x, point.y)
             if node_coords == coords:
                 return node_id
-        return None  # Consider how to handle the case where no node matches the coordinates
+        return None
 
     def find_path(self):
         logger.info(f"Finding shortest path with "
@@ -241,7 +232,6 @@ class PRM:
         """Execute PRM to find a path from start to goal."""
         self.generate_random_nodes()
         self.connect_nodes()
-        # Ensure start and goal are part of self.node_list if needed
         shortest_path = self.find_path()  # (start_id, goal_id)
         return shortest_path
 
