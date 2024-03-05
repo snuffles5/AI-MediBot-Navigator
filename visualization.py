@@ -104,3 +104,30 @@ def visualize_graph(graph, obstacles, shortest_path, prm, num_random_nodes, fail
     draw_nodes(ax_1, graph, graph.nodes.get('start'), graph.nodes.get('goal'))
     print_plt(ax_1, graph.nodes.get('start'), graph.nodes.get('goal'), prm, f"exports/1_{num_random_nodes}_{filename}", fig_1,
               is_available_shortest_path, num_random_nodes, failed_attempts)
+
+
+def generate_comparison_charts(a_star_data: dict, dijkstra_data: dict, num_random_nodes_list, filename="performance_comparison.png"):
+    logger.info("generate comparison charts...")
+    metrics = ['execution_time', 'iterations', 'memory_usage']
+    titles = ['Execution Time (seconds)', 'Number of Iterations', 'Memory Usage (bytes)']
+    fig, axs = plt.subplots(len(metrics), 1, figsize=(10, 15))
+
+    for i, metric in enumerate(metrics):
+        a_star_metrics = a_star_data.get(metric, [])
+        dijkstra_metrics = dijkstra_data.get(metric, [])
+
+        # Simple check to ensure dimensions match. Adjust or remove as necessary.
+        if len(a_star_metrics) != len(num_random_nodes_list) or len(dijkstra_metrics) != len(num_random_nodes_list):
+            print(f"Dimension mismatch for {metric}. Check data aggregation.")
+            continue
+
+        axs[i].plot(num_random_nodes_list, a_star_metrics, label='A* ' + metric.replace('_', ' ').title())
+        axs[i].plot(num_random_nodes_list, dijkstra_metrics, label='Dijkstra ' + metric.replace('_', ' ').title())
+        axs[i].set_xlabel('Number of Random Nodes')
+        axs[i].set_ylabel(titles[i])
+        axs[i].set_title(titles[i] + ' Comparison')
+        axs[i].legend()
+
+    plt.tight_layout()
+    plt.savefig("exports/" + filename)
+    plt.close()

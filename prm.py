@@ -1,5 +1,6 @@
 import math
 import random
+from collections import namedtuple
 from enum import Enum
 
 from shapely.geometry import Point, LineString, Polygon
@@ -13,6 +14,7 @@ import heapq
 from log_model import logger
 
 K_RADIUS = 100
+SearchResult = namedtuple('SearchResult', ['came_from', 'cost_so_far', 'iterations'])
 
 
 class SearchType(Enum):
@@ -30,13 +32,15 @@ def manhattan_distance(a, b):
     return abs(b.x - a.x) + abs(b.y - a.y)
 
 
-def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance):
+def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance) -> SearchResult:
+    iterations = 0
     frontier = []
     heapq.heappush(frontier, (0, start))
     came_from = {start: None}
     cost_so_far = {start: 0}
 
     while frontier:
+        iterations += 1
         current_priority, current = heapq.heappop(frontier)
         logger.debug(f"Current node: {current}, Priority: {current_priority}")
 
@@ -56,16 +60,18 @@ def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance):
                 logger.debug(f"Updating node {next_node} with new cost and priority.")
 
     logger.debug(f"Final came_from: {came_from}")
-    return came_from, cost_so_far
+    return SearchResult(came_from=came_from, cost_so_far=cost_so_far, iterations=iterations)
 
 
-def dijkstra_search(graph, start, goal):
+def dijkstra_search(graph, start, goal) -> SearchResult:
+    iterations = 0
     frontier = []
     heapq.heappush(frontier, (0, start))  # Priority queue; cost from start to node
     came_from = {start: None}  # Track the path
     cost_so_far = {start: 0}  # Cost from start to the node
 
     while frontier:
+        iterations += 1
         current_priority, current = heapq.heappop(frontier)
         if current == goal:
             break
@@ -79,7 +85,7 @@ def dijkstra_search(graph, start, goal):
                 heapq.heappush(frontier, (priority, next_node))
                 came_from[next_node] = current
 
-    return came_from, cost_so_far
+    return SearchResult(came_from=came_from, cost_so_far=cost_so_far, iterations=iterations)
 
 
 class PRM:
@@ -178,41 +184,45 @@ class PRM:
                 return node_id
         return None
 
-    def find_path(self):
+    def find_path(self) -> SearchResult:
         logger.info(f"Finding shortest path with "
                     f"{'A*' if self.search_type == SearchType.A_STAR_SEARCH else 'Dijkstra'} algorithm...")
+        search_result = None
         start_node = self.start.id
         goal_node = self.goal.id
         if start_node == goal_node:
             # Handle the case where the start node and goal node are the same
-            return [self.graph.nodes[start_node]]
+            logger.warn(f"start and goal are the same...")
+            self.shortest_path = [self.graph.nodes[start_node]]
+            return SearchResult(came_from=self.shortest_path, cost_so_far=self.shortest_path_cost, iterations=0)
 
         if self.search_type == SearchType.A_STAR_SEARCH:
-            came_from, cost_so_far = a_star_search(self.graph, start_node, goal_node)
+            search_result = a_star_search(self.graph, start_node, goal_node)
         else:
-            came_from, cost_so_far = dijkstra_search(self.graph, start_node, goal_node)
-        if goal_node not in came_from:
+            search_result = dijkstra_search(self.graph, start_node, goal_node)
+
+        if goal_node not in search_result.came_from:
             # Handle the case where no path is found
             logger.warn(f"No shortest path found")
-            return []
+            return SearchResult(came_from=[], cost_so_far=0, iterations=0)
 
         # Reconstruct the path
         current = goal_node
         path = []
         while current != start_node:
             path.append(current)
-            current = came_from.get(current)
+            current = search_result.came_from.get(current)
             if current is None:
                 # Handle the case where a path to the current node wasn't found
                 logger.warn(f"No shortest path found")
-                return []
+                return SearchResult(came_from=[], cost_so_far=0, iterations=0)
         path.append(start_node)
         path.reverse()
 
-        self.shortest_path_cost = cost_so_far[goal_node]
+        self.shortest_path_cost = search_result.cost_so_far[goal_node]
         logger.info(f"Found shortest path, {self.shortest_path_cost=}")
         self.shortest_path = [self.graph.nodes[node_id] for node_id in path]
-        return self.shortest_path
+        return search_result
 
     def get_closest_node(self, point: GraphPoint, type_of_distance=manhattan_distance):
         """Find the graph node closest to a given point."""
@@ -232,8 +242,8 @@ class PRM:
         """Execute PRM to find a path from start to goal."""
         self.generate_random_nodes()
         self.connect_nodes()
-        shortest_path = self.find_path()  # (start_id, goal_id)
-        return shortest_path
+        self.find_path()
+        return self.shortest_path
 
     def initialize_nodes_list(self):
         self.node_list = [self.start]
