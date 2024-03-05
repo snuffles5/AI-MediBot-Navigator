@@ -11,8 +11,9 @@ def add_linestring(ax, linestring, color='r'):
     ax.plot(x, y, color=color)
 
 
-def visualize_graph(graph, obstacles, shortest_path, filename='graph_visualization.pdf'):
+def visualize_graph(graph, obstacles, shortest_path, prm, filename='graph_visualization.pdf'):
     logger.info("Visualizing graph...")
+    is_available_shortest_path = False
     fig, ax = plt.subplots(figsize=(10, 10))  # Adjust figure size as needed
     ax.set_aspect('equal')
 
@@ -23,11 +24,11 @@ def visualize_graph(graph, obstacles, shortest_path, filename='graph_visualizati
             ax.plot(x, y, color='r', linewidth=0.5)
         elif isinstance(obstacle, Polygon):
             x, y = obstacle.exterior.xy
-            ax.add_patch(MplPolygon(list(zip(x, y)), closed=True, color='r', fill=False, linewidth=0.5))
-        elif isinstance(obstacle, MapCircle):  # Adjusted for custom Circle objects
+            ax.add_patch(MplPolygon(list(zip(x, y)), closed=True, color='r', fill=True, linewidth=0.5))
+        elif isinstance(obstacle, MplCircle):  # Adjusted for custom Circle objects
             # Draw Circle using matplotlib.patches.Circle
             center = (obstacle.center[0], obstacle.center[1])  # Adjust if necessary
-            circle = MplCircle(center, obstacle.radius, edgecolor='r', facecolor='none', linewidth=0.5)
+            circle = MplCircle(center, obstacle.radius, edgecolor='r', facecolor='r', linewidth=0.5)
             ax.add_patch(circle)
 
     #  Draw all paths in the graph (for demonstration purposes)
@@ -36,7 +37,7 @@ def visualize_graph(graph, obstacles, shortest_path, filename='graph_visualizati
             from_node = graph.nodes[from_node_id]
             for to_node_id, _ in edges:
                 to_node = graph.nodes[to_node_id]
-                ax.plot([from_node.x, to_node.x], [from_node.y, to_node.y], '#808080', linewidth=0.5)#, alpha=0.5)
+                ax.plot([from_node.x, to_node.x], [from_node.y, to_node.y], '#808080', linewidth=0.5)  # , alpha=0.5)
 
     #  Highlight the path from start to goal if provided
     if shortest_path:
@@ -61,6 +62,18 @@ def visualize_graph(graph, obstacles, shortest_path, filename='graph_visualizati
 
     if goal_node:
         ax.plot(goal_node.x, goal_node.y, 'ro')  # Red for goal
+
+        if prm.shortest_path_cost != -1:
+            is_available_shortest_path = True
+
+        if is_available_shortest_path:
+            text_str = f"Path from {start_node} to {goal_node}\nTotal Cost: {round(prm.shortest_path_cost, 3)}\n" \
+                       f"Search Type: {prm.search_type.value}"
+        else:
+            text_str = f"No available path from {start_node} to {goal_node}"
+            return
+        ax.text(0.05, 0.95, text_str, transform=ax.transAxes, fontsize=12,
+                verticalalignment='top', bbox=dict(boxstyle="round", facecolor='white', alpha=0.5))
 
     plt.savefig(filename, format='pdf')
     plt.close(fig)  # Close the figure
