@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Circle as MplCircle, Polygon as MplPolygon
 from shapely.geometry import LineString, Polygon
 from log_model import logger
@@ -111,23 +112,31 @@ def generate_comparison_charts(a_star_data: dict, dijkstra_data: dict, num_rando
     metrics = ['execution_time', 'iterations', 'memory_usage']
     titles = ['Execution Time (seconds)', 'Number of Iterations', 'Memory Usage (bytes)']
     fig, axs = plt.subplots(len(metrics), 1, figsize=(10, 15))
+    bar_width = 0.35  # Width of the bars
+
+    # Calculate positions for each set of bars
+    index = np.arange(len(num_random_nodes_list))
 
     for i, metric in enumerate(metrics):
         a_star_metrics = a_star_data.get(metric, [])
         dijkstra_metrics = dijkstra_data.get(metric, [])
 
-        # Simple check to ensure dimensions match. Adjust or remove as necessary.
+        # Check to ensure dimensions match. If not, skip plotting for this metric.
         if len(a_star_metrics) != len(num_random_nodes_list) or len(dijkstra_metrics) != len(num_random_nodes_list):
-            print(f"Dimension mismatch for {metric}. Check data aggregation.")
+            logger.error(f"Dimension mismatch for {metric}. Check data aggregation.")
             continue
 
-        axs[i].plot(num_random_nodes_list, a_star_metrics, label='A* ' + metric.replace('_', ' ').title())
-        axs[i].plot(num_random_nodes_list, dijkstra_metrics, label='Dijkstra ' + metric.replace('_', ' ').title())
+        # Plotting the bar chart
+        axs[i].bar(index - bar_width/2, a_star_metrics, bar_width, label='A* ' + metric.replace('_', ' ').title())
+        axs[i].bar(index + bar_width/2, dijkstra_metrics, bar_width, label='Dijkstra ' + metric.replace('_', ' ').title())
+
         axs[i].set_xlabel('Number of Random Nodes')
         axs[i].set_ylabel(titles[i])
         axs[i].set_title(titles[i] + ' Comparison')
+        axs[i].set_xticks(index)
+        axs[i].set_xticklabels(num_random_nodes_list)
         axs[i].legend()
 
     plt.tight_layout()
-    plt.savefig("exports/" + filename)
+    plt.savefig("exports/" + filename, transparent=True)
     plt.close()
