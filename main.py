@@ -10,7 +10,7 @@ from visualization import visualize_graph, \
 from log_model import logger
 from prm import PRM, SearchType
 from obstacles import create_obstacles
-from graph import Graph, graph_rooms_nodes, graph_general_nodes
+from graph import Graph, graph_rooms_nodes, graph_general_nodes, GOAL_POINT_ID
 
 matplotlib.use('TkAgg')
 
@@ -33,8 +33,8 @@ def main():
 
     obstacles = create_obstacles()
     start = graph_general_nodes.get("start")
-    goal = graph_rooms_nodes.get("H")
-    num_random_nodes_list = [20, 50, 100, 200, 500]
+    goal = graph_general_nodes.get("goal")
+    num_random_nodes_list = [20]
 
     for num_random_nodes in num_random_nodes_list:
         temp_metrics = {
@@ -82,19 +82,19 @@ def main():
             temp_metrics['Dijkstra']['iterations'].append(dijkstra_result.iterations)  # Same assumption
             temp_metrics['Dijkstra']['memory_usage'].append(dijkstra_memory_usage)
 
-            found_shortest_path = a_star_prm.shortest_path_cost != -1 and dijkstra_prm.shortest_path_cost != -1
+            found_shortest_path = a_star_prm.shortest_path_cost != -1 or dijkstra_prm.shortest_path_cost != -1
             if found_shortest_path:
                 logger.info(f"Time taken for A*: {round(a_star_time, 5)} seconds")
                 logger.info(f"Failed attempts {failed_attempts}")
                 logger.info(f"Time taken for Dijkstra: {round(dijkstra_time, 5)} seconds")
                 logger.info(f"Number of nodes {num_random_nodes}")
                 run_prefix = uuid.uuid4().hex[-5:]
-                visualize_graph(a_star_graph, obstacles, a_star_prm.shortest_path, a_star_prm,
-                                num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
-                                filename=f'{run_prefix}_graph_visualization_a*.pdf', is_available_shortest_path=True)
-                visualize_graph(dijkstra_graph, obstacles, dijkstra_prm.shortest_path, dijkstra_prm,
-                                num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
-                                filename=f'{run_prefix}_graph_visualization_dijkstra.pdf')
+                # visualize_graph(a_star_graph, obstacles, a_star_prm.shortest_path, a_star_prm,
+                #                 num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
+                #                 filename=f'{run_prefix}_graph_visualization_a*.pdf', is_available_shortest_path=True)
+                # visualize_graph(dijkstra_graph, obstacles, dijkstra_prm.shortest_path, dijkstra_prm,
+                #                 num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
+                #                 filename=f'{run_prefix}_graph_visualization_dijkstra.pdf')
             else:
                 failed_attempts += 1
         for method in ['A*', 'Dijkstra']:

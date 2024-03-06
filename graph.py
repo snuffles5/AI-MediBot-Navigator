@@ -4,7 +4,7 @@ from log_model import logger
 
 MapCircle = namedtuple('MapCircle', ['center', 'radius'])
 MapPoint = namedtuple('MapPoint', ['x', 'y'])
-GOAL_POINT = "B"
+GOAL_POINT_ID = "H"
 
 
 class GraphPoint:
@@ -49,7 +49,7 @@ graph_rooms_nodes = {
 
 graph_general_nodes = {
     'start': GraphPoint(202, 0, point_id='start'),
-    'goal': GraphPoint(graph_rooms_nodes.get(GOAL_POINT).x, graph_rooms_nodes.get(GOAL_POINT).y, point_id='goal'),
+    'goal': GraphPoint(graph_rooms_nodes.get(GOAL_POINT_ID).x, graph_rooms_nodes.get(GOAL_POINT_ID).y, point_id='goal'),
 }
 
 
@@ -62,14 +62,16 @@ class Graph:
     def get_room_nodes(self):
         return [v for k, v in self.nodes.items() if len(v.id) == 1]
 
-    def add_edge(self, from_node, to_node, cost):
-        if from_node and to_node:
-            if from_node in self.edges:
-                self.edges[from_node].append((to_node, cost))
+    def add_edge(self, from_node_id, to_node_id, cost):
+        if from_node_id and to_node_id:
+            if from_node_id == to_node_id:
+                # Avoid adding an edge from a node to itself
+                logger.debug(f"Avoiding self-connection for {from_node_id}")
+                return
+            if from_node_id in self.edges:
+                self.edges[from_node_id].append((to_node_id, cost))
             else:
-                self.edges[from_node] = [(to_node, cost)]
-        else:
-            pass
+                self.edges[from_node_id] = [(to_node_id, cost)]
 
     def neighbors(self, node_id):
         return [neighbor for neighbor, _ in self.edges.get(node_id, [])]
@@ -84,7 +86,29 @@ class Graph:
         return float('inf')
 
     def add_node(self, point: GraphPoint):
+        # Check if node with same id or coordinates already exists
+        existing_node = self.nodes.get(point.id)
+        if existing_node and (existing_node.x == point.x and existing_node.y == point.y):
+            logger.warn(f"Node {point.id} with coordinates ({point.x}, {point.y}) already exists.")
+            return
+
+        # Check if any node with same coordinates exists
+        if any(node.x == point.x and node.y == point.y for node in self.nodes.values()):
+            logger.warn(f"Node with coordinates ({point.x}, {point.y}) already exists.")
+            return
+
+        logger.debug(f"Adding node: {point.id}")
         node_id = point.id
         self.nodes[node_id] = point
         if node_id not in self.edges:
             self.edges[node_id] = []
+
+    def remove_node(self, point):
+        if point:
+            to_remove = [node_id for node_id, node in self.nodes.items() if node.x == point.x and node.y == point.y]
+            for node_id in to_remove:
+                logger.info(f"Removing node: {node_id}")
+                del self.nodes[node_id]
+                # Also remove any edges associated with this node
+                self.edges = {from_node: edges for from_node, edges in self.edges.items() if from_node != node_id}
+                self.edges = {from_node: [(to_node, cost) for to_node, cost in edges if to_node != node_id] for from_node, edges in self.edges.items()}
