@@ -14,7 +14,8 @@ import heapq
 from log_model import logger
 
 K_RADIUS = 100
-SearchResult = namedtuple('SearchResult', ['came_from', 'cost_so_far', 'iterations', 'h_costs'])
+SearchResult = namedtuple('SearchResult', ['came_from', 'cost_so_far',
+                                           'iterations', 'h_costs', 'visited_nodes', 'visited_edges'])
 
 
 class SearchType(Enum):
@@ -33,6 +34,8 @@ def manhattan_distance(a, b):
 
 
 def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance) -> SearchResult:
+    visited_nodes = set()
+    visited_edges = set()
     iterations = 0
     frontier = []
     heapq.heappush(frontier, (0, start))
@@ -43,6 +46,7 @@ def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance) -> S
     while frontier:
         iterations += 1
         current_priority, current = heapq.heappop(frontier)
+        visited_nodes.add(current)
         logger.debug(f"Current node: {current}, Priority: {current_priority}")
 
         if current == goal:
@@ -51,6 +55,7 @@ def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance) -> S
 
         for next_node in graph.neighbors(current):
             new_cost = cost_so_far[current] + graph.cost(current, next_node)
+            visited_edges.add((current, next_node))
             logger.debug(f"Considering: {next_node}, New cost: {new_cost}")
 
             if new_cost < cost_so_far.get(next_node, float('inf')):
@@ -62,10 +67,13 @@ def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance) -> S
                 logger.debug(f"Updating node {next_node} with new cost and priority.")
 
     logger.debug(f"Final came_from: {came_from}")
-    return SearchResult(came_from=came_from, cost_so_far=cost_so_far, iterations=iterations, h_costs=h_costs)
+    return SearchResult(came_from=came_from, cost_so_far=cost_so_far, iterations=iterations, h_costs=h_costs,
+                        visited_nodes=visited_nodes, visited_edges=visited_edges)
 
 
 def dijkstra_search(graph, start, goal) -> SearchResult:
+    visited_nodes = set()
+    visited_edges = set()
     iterations = 0
     frontier = []
     heapq.heappush(frontier, (0, start))  # Priority queue; cost from start to node
@@ -75,11 +83,13 @@ def dijkstra_search(graph, start, goal) -> SearchResult:
     while frontier:
         iterations += 1
         current_priority, current = heapq.heappop(frontier)
+        visited_nodes.add(current)
         if current == goal:
             break
 
         for next_node in graph.neighbors(current):
             new_cost = cost_so_far[current] + graph.cost(current, next_node)
+            visited_edges.add((current, next_node))
 
             if new_cost < cost_so_far.get(next_node, float('inf')):
                 cost_so_far[next_node] = new_cost
@@ -87,13 +97,16 @@ def dijkstra_search(graph, start, goal) -> SearchResult:
                 heapq.heappush(frontier, (priority, next_node))
                 came_from[next_node] = current
 
-    return SearchResult(came_from=came_from, cost_so_far=cost_so_far, iterations=iterations, h_costs={})
+    return SearchResult(came_from=came_from, cost_so_far=cost_so_far, iterations=iterations, h_costs={},
+                        visited_nodes=visited_nodes, visited_edges=visited_edges)
 
 
 class PRM:
     shortest_path_cost = -1
 
     def __init__(self, graph, obstacles, start, goal, num_random_nodes=100, search_type=SearchType.A_STAR_SEARCH):
+        self.visited_nodes = None
+        self.visited_edges= None
         self.node_list = None
         self.h_costs = None
         self.graph = graph
@@ -103,8 +116,8 @@ class PRM:
         self.goal: GraphPoint = goal
         self.goal.id = 'goal'
         self.num_random_nodes = num_random_nodes
-        self.x_bounds = (0, 300)
-        self.y_bounds = (0, 200)
+        self.x_bounds = (150, 350)
+        self.y_bounds = (0, 400)
         self.kd_tree = None
         self.shortest_path = []
         self.search_type = search_type
@@ -203,7 +216,8 @@ class PRM:
             logger.warn(f"start and goal are the same...")
             self.shortest_path = [self.graph.nodes[start_node]]
             self.h_costs = {}
-            return SearchResult(came_from=self.shortest_path, cost_so_far=self.shortest_path_cost, iterations=0, h_costs={})
+            return SearchResult(came_from=self.shortest_path, cost_so_far=self.shortest_path_cost, iterations=0,
+                                h_costs={}, visited_nodes=[start_node], visited_edges=[{start_node: start_node}])
 
         if self.search_type == SearchType.A_STAR_SEARCH:
             search_result = a_star_search(self.graph, start_node, goal_node)
@@ -214,7 +228,8 @@ class PRM:
             # Handle the case where no path is found
             logger.warn(f"No shortest path found")
             self.h_costs = {}
-            return SearchResult(came_from=[], cost_so_far=0, iterations=0, h_costs={})
+            return SearchResult(came_from=[], cost_so_far=0, iterations=0, h_costs={},
+                                visited_nodes=[], visited_edges=[])
 
         # Reconstruct the path
         current = goal_node
@@ -226,7 +241,8 @@ class PRM:
                 # Handle the case where a path to the current node wasn't found
                 logger.warn(f"No shortest path found")
                 self.h_costs = {}
-                return SearchResult(came_from=[], cost_so_far=0, iterations=0, h_costs={})
+                return SearchResult(came_from=[], cost_so_far=0, iterations=0, h_costs={},
+                                    visited_nodes=[], visited_edges=[])
         path.append(start_node)
         path.reverse()
 
@@ -234,6 +250,8 @@ class PRM:
         logger.info(f"Found shortest path, {self.shortest_path_cost=}")
         self.shortest_path = [self.graph.nodes[node_id] for node_id in path]
         self.h_costs = search_result.h_costs
+        self.visited_nodes = search_result.visited_nodes
+        self.visited_edges = search_result.visited_edges
         return search_result
 
     def get_closest_node(self, point: GraphPoint, type_of_distance=manhattan_distance):

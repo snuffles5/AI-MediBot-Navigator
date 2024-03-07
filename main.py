@@ -89,12 +89,12 @@ def main():
                 logger.info(f"Time taken for Dijkstra: {round(dijkstra_time, 5)} seconds")
                 logger.info(f"Number of nodes {num_random_nodes}")
                 run_prefix = uuid.uuid4().hex[-5:]
-                # visualize_graph(a_star_graph, obstacles, a_star_prm.shortest_path, a_star_prm,
-                #                 num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
-                #                 filename=f'{run_prefix}_graph_visualization_a*.pdf', is_available_shortest_path=True)
-                # visualize_graph(dijkstra_graph, obstacles, dijkstra_prm.shortest_path, dijkstra_prm,
-                #                 num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
-                #                 filename=f'{run_prefix}_graph_visualization_dijkstra.pdf')
+                visualize_graph(a_star_graph, obstacles, a_star_prm.shortest_path, a_star_prm,
+                                num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
+                                filename=f'{run_prefix}_graph_visualization_a*.pdf')
+                visualize_graph(dijkstra_graph, obstacles, dijkstra_prm.shortest_path, dijkstra_prm,
+                                num_random_nodes=num_random_nodes, failed_attempts=failed_attempts,
+                                filename=f'{run_prefix}_graph_visualization_dijkstra.pdf')
             else:
                 failed_attempts += 1
         for method in ['A*', 'Dijkstra']:
