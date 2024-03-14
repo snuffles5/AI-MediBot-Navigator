@@ -44,6 +44,7 @@ def draw_all_paths(ax, graph, prm, show_all_paths_costs, h_costs=None, is_mark_v
         from_node = graph.nodes[from_node_id]
         for to_node_id, cost in edges:
             to_node = graph.nodes[to_node_id]
+            is_visited_edge = ((from_node_id, to_node_id) in visited_edges or (to_node_id, from_node_id) in visited_edges)
             if (to_node_id, from_node_id) in drawn_edges:
                 logger.debug("found duplicate edge")
                 continue  # Skip drawing if edge has already been drawn in the opposite direction
@@ -54,7 +55,7 @@ def draw_all_paths(ax, graph, prm, show_all_paths_costs, h_costs=None, is_mark_v
             edge_width = 0.3
 
             # If marking visited paths and this path is visited, adjust color and width
-            if is_mark_visited and ((from_node_id, to_node_id) in visited_edges or (to_node_id, from_node_id) in visited_edges):
+            if is_mark_visited and is_visited_edge:
                 edge_color = 'orange'  # Or any color that signifies a visited path
                 edge_width = 1  # Make visited paths more prominent
 
@@ -62,13 +63,13 @@ def draw_all_paths(ax, graph, prm, show_all_paths_costs, h_costs=None, is_mark_v
                     zorder=1)  # Gray for paths
             drawn_edges.add((from_node_id, to_node_id))  # Mark this edge as drawn
 
-
-            if show_all_paths_costs and h_costs is None:  # Display g-cost for each path if enabled
+            if is_mark_visited and is_visited_edge and show_all_paths_costs and h_costs is None:  # Display g-cost for each path if enabled
                 ax.text(midpoint[0], midpoint[1], f'{cost:.2f}', fontsize=3, ha='center', va='center', rotation=angle,
                         bbox=dict(boxstyle="round,pad=0.1", facecolor='gray', alpha=1, linewidth=0.1), zorder=5)
             elif h_costs:  # Optionally display h-costs for A* search visualization
                 h_cost = h_costs.get(from_node_id, 0)  # Assuming h_costs is a dict with node_id as keys
-                ax.text(from_node.x, from_node.y, f'h={h_cost:.2f}', fontsize=3, color='blue', ha='center', zorder=5,
+                if h_cost > 0:
+                    ax.text(from_node.x, from_node.y, f'h={h_cost:.2f}', fontsize=3, color='blue', ha='center', zorder=5,
                         bbox=dict(boxstyle="round,pad=0.1", facecolor='gray', alpha=1, linewidth=0.1))
 
 

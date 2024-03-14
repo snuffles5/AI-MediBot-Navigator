@@ -1,3 +1,4 @@
+import random
 import time
 import uuid
 import tracemalloc
@@ -6,7 +7,7 @@ import matplotlib
 import numpy as np
 
 from visualization import visualize_graph, \
-    generate_comparison_charts  # Assuming generate_comparison_charts is implemented
+    generate_comparison_charts, generate_merged_comparison_charts  # Assuming generate_comparison_charts is implemented
 from log_model import logger
 from prm import PRM, SearchType
 from obstacles import create_obstacles
@@ -14,7 +15,7 @@ from graph import Graph, graph_rooms_nodes, graph_general_nodes, GOAL_POINT_ID
 
 matplotlib.use('TkAgg')
 
-RUN_TIMES = 5
+NODE_DENSITY = [20, 50, 100, 500]
 
 
 def duplicate_graph(original_graph):
@@ -23,7 +24,7 @@ def duplicate_graph(original_graph):
     return new_graph
 
 
-def main():
+def main(goal_id: str = None):
     # Initialize performance metrics dictionaries
     matplotlib.use('TkAgg')
     performance_metrics = {
@@ -32,9 +33,10 @@ def main():
     }
 
     obstacles = create_obstacles()
-    start = graph_general_nodes.get("start")
-    goal = graph_general_nodes.get("goal")
-    num_random_nodes_list = [20]
+    general_nodes = graph_general_nodes(goal_id)
+    start = general_nodes.get("start")
+    goal = general_nodes.get("goal")
+    num_random_nodes_list = NODE_DENSITY
 
     for num_random_nodes in num_random_nodes_list:
         temp_metrics = {
@@ -44,7 +46,7 @@ def main():
         found_shortest_path = False
         failed_attempts = 0
         while not found_shortest_path:
-            a_star_graph = Graph(nodes={**graph_rooms_nodes, **graph_general_nodes})
+            a_star_graph = Graph(nodes={**graph_rooms_nodes, **general_nodes})
             a_star_prm = PRM(graph=a_star_graph, obstacles=obstacles, start=start, goal=goal,
                              num_random_nodes=num_random_nodes,
                              search_type=SearchType.A_STAR_SEARCH)

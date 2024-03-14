@@ -5,7 +5,7 @@ from enum import Enum
 
 from shapely.geometry import Point, LineString, Polygon
 from matplotlib.patches import Circle
-from graph import MapCircle, MapPoint, GraphPoint
+from graph import GraphPoint, manhattan_distance
 from scipy.spatial import KDTree
 import numpy as np
 
@@ -21,16 +21,6 @@ SearchResult = namedtuple('SearchResult', ['came_from', 'cost_so_far',
 class SearchType(Enum):
     A_STAR_SEARCH = "a_star_search"
     DIJKSTRA = "dijkstra"
-
-
-def euclidean_distance(a, b):
-    """Calculate the Euclidean distance between two points."""
-    return math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2)
-
-
-def manhattan_distance(a, b):
-    """Calculate the Manhattan distance between two points."""
-    return abs(b.x - a.x) + abs(b.y - a.y)
 
 
 def a_star_search(graph, start, goal, type_of_heuristic=manhattan_distance) -> SearchResult:
@@ -116,8 +106,8 @@ class PRM:
         self.goal: GraphPoint = goal
         self.goal.id = 'goal'
         self.num_random_nodes = num_random_nodes
-        self.x_bounds = (150, 350)
-        self.y_bounds = (0, 400)
+        self.x_bounds = (0, 600)
+        self.y_bounds = (0, 600)
         self.kd_tree = None
         self.shortest_path = []
         self.search_type = search_type
@@ -192,7 +182,7 @@ class PRM:
                 if index != i:  # Avoid connecting the node to itself
                     from_node = self.node_list[i]
                     to_node = self.node_list[index]
-                    if self.is_clear_path(Point(from_node.x, from_node.y), Point(to_node.x, to_node.y)):
+                    if from_node != to_node and self.is_clear_path(Point(from_node.x, from_node.y), Point(to_node.x, to_node.y)):
                         self.graph.add_edge(from_node.id, to_node.id, type_of_distance(from_node, to_node))
                         logger.debug(f"Connected {from_node.id} to {to_node.id}")
         pass

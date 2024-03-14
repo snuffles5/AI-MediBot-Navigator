@@ -1,3 +1,5 @@
+import math
+import random
 from collections import namedtuple
 
 from log_model import logger
@@ -5,6 +7,15 @@ from log_model import logger
 MapCircle = namedtuple('MapCircle', ['center', 'radius'])
 MapPoint = namedtuple('MapPoint', ['x', 'y'])
 GOAL_POINT_ID = "H"
+
+def euclidean_distance(a, b):
+    """Calculate the Euclidean distance between two points."""
+    return math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2)
+
+
+def manhattan_distance(a, b):
+    """Calculate the Manhattan distance between two points."""
+    return abs(b.x - a.x) + abs(b.y - a.y)
 
 
 class GraphPoint:
@@ -47,10 +58,13 @@ graph_rooms_nodes = {
     'O': GraphPoint(312, 338, point_id='O'),
 }
 
-graph_general_nodes = {
-    'start': GraphPoint(202, 0, point_id='start'),
-    'goal': GraphPoint(graph_rooms_nodes.get(GOAL_POINT_ID).x, graph_rooms_nodes.get(GOAL_POINT_ID).y, point_id='goal'),
-}
+
+def graph_general_nodes(goal_id: str = None):
+    goal_id = goal_id or random.choice(list(graph_rooms_nodes.keys()))
+    return {
+        'start': GraphPoint(202, 0, point_id='start'),
+        'goal': GraphPoint(graph_rooms_nodes.get(goal_id).x, graph_rooms_nodes.get(goal_id).y, point_id='goal'),
+    }
 
 
 class Graph:
@@ -111,4 +125,5 @@ class Graph:
                 del self.nodes[node_id]
                 # Also remove any edges associated with this node
                 self.edges = {from_node: edges for from_node, edges in self.edges.items() if from_node != node_id}
-                self.edges = {from_node: [(to_node, cost) for to_node, cost in edges if to_node != node_id] for from_node, edges in self.edges.items()}
+                self.edges = {from_node: [(to_node, cost) for to_node, cost in edges if to_node != node_id] for
+                              from_node, edges in self.edges.items()}
