@@ -4,7 +4,7 @@
 ## Overview
 This project delves into improving robots' navigation within hospital environments, focusing on the efficiency and reliability of different pathfinding methodologies. Specifically, it evaluates the Probabilistic Roadmap Method (PRM) against well-known Dijkstra and A* algorithms to identify the most effective strategy for guiding robots through the complex and dynamic spaces of hospitals. The objective is to optimize robots' ability to navigate, avoid obstacles, and deliver items swiftly, enhancing the operational flow of hospital services and ensuring timely patient care.
 
-The exploration is grounded in the context of Hadassah Hospital's Emergency Room (ER) in Jerusalem, providing a realistic backdrop for our simulations. This choice allows for a detailed examination of navigation challenges within a particularly critical and complex hospital area.
+The exploration is grounded in the context of Hadassah Hospital's Emergency Room (ER) in Jerusalem, Israel; providing a realistic backdrop for our simulations. This choice allows for a detailed examination of navigation challenges within a particularly critical and complex hospital area.
 
 ## Problem Description
 Navigating a hospital environment poses significant challenges for robots due to the presence of both static and dynamic obstacles, and the need to adapt to changes within the hospital layout swiftly. The project aims to devise a system capable of dynamically selecting the optimal route for a robot moving from one point to another, enhancing efficiency in hospital logistics.
