@@ -40,3 +40,5 @@ The research is specifically tailored around the intricacies of navigating the E
 Our findings indicate a nuanced performance landscape where the A* algorithm generally outperforms Dijkstra's method in terms of efficiency and speed, particularly with increasing numbers of nodes (or complexity). However, Dijkstra's algorithm showcases robustness, consistently finding the shortest path, albeit at a slower pace. This research lays the groundwork for further exploration into dynamic obstacle avoidance and the integration of machine learning techniques to adapt pathfinding algorithms in real-time, promising enhancements to both algorithmic efficiency and practical utility in hospital settings.
 
 The project's emphasis on Hadassah Hospital's ER not only provides a detailed framework for our simulations but also underscores the potential of advanced pathfinding algorithms to address real-world challenges in healthcare logistics and patient care delivery.
+
+![AI MediBot](https://github.com/user-attachments/assets/19a57581-12d3-43e9-b49f-e79230fd8d6b)
